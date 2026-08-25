@@ -222,7 +222,7 @@
                         <option value="digital">디지털 알림</option>
                         <option value="soft">부드러운 알림</option>
                         <option value="chime">차임</option>
-                        <option value="vibrate">진동</option> <!-- 진동 옵션 추가 -->
+                        <option value="vibrate">진동</option>
                         <option value="mute">무음</option>
                     </select>
                     <button class="preview-btn" id="preview-btn">미리 듣기</button>
@@ -285,7 +285,6 @@ const AudioEngine = (function() {
 
     return {
         play: function(type, volumePercent) {
-            // 진동 처리 추가
             if (type === 'vibrate') {
                 if (navigator.vibrate) {
                     navigator.vibrate([500, 200, 500]);
@@ -324,9 +323,25 @@ const App = (function() {
     let currentPhase = 'focus'; 
     let totalSeconds = 25 * 60;
     let timeRemaining = totalSeconds;
-    let timerInterval = null;
+    let expectedEndTime = 0; // 백그라운드 계산용 목표 시간
+    
     let isDragging = false;
     let wasRunningBeforeDrag = false;
+
+    // Web Worker 생성 (백그라운드에서도 setInterval이 느려지지 않게 방어)
+    const workerCode = `
+        let interval;
+        self.onmessage = function(e) {
+            if (e.data === 'start') {
+                clearInterval(interval);
+                interval = setInterval(() => self.postMessage('tick'), 250); // 0.25초마다 체크
+            } else if (e.data === 'stop') {
+                clearInterval(interval);
+            }
+        };
+    `;
+    const blob = new Blob([workerCode], {type: 'application/javascript'});
+    const timerWorker = new Worker(URL.createObjectURL(blob));
 
     const data = {
         settings: {
@@ -336,33 +351,31 @@ const App = (function() {
     };
 
     const els = {
-        timeFocus: document.getElementById('time-focus'),
-        timeShort: document.getElementById('time-short'),
-        timeLong: document.getElementById('time-long'),
-        intervalLong: document.getElementById('interval-long'),
-        autoStart: document.getElementById('auto-start'),
-        soundType: document.getElementById('sound-type'),
-        soundVolume: document.getElementById('sound-volume'),
-        volText: document.getElementById('vol-text'),
-        previewBtn: document.getElementById('preview-btn'),
-        colorPrimary: document.getElementById('color-primary'),
-        colorBg: document.getElementById('color-bg'),
+        timeFocus: document.getElementById('time-focus'), timeShort: document.getElementById('time-short'), timeLong: document.getElementById('time-long'),
+        intervalLong: document.getElementById('interval-long'), autoStart: document.getElementById('auto-start'), soundType: document.getElementById('sound-type'),
+        soundVolume: document.getElementById('sound-volume'), volText: document.getElementById('vol-text'), previewBtn: document.getElementById('preview-btn'),
+        colorPrimary: document.getElementById('color-primary'), colorBg: document.getElementById('color-bg'), phaseTabs: document.querySelectorAll('.segment'),
+        timeDisplay: document.getElementById('time-display'), progressContainer: document.getElementById('progress-container'), progressFill: document.getElementById('progress-fill'),
+        labelElapsed: document.getElementById('label-elapsed'), labelRemaining: document.getElementById('label-remaining'), mainBtn: document.getElementById('main-btn'),
+        resetBtn: document.getElementById('reset-btn'), skipBtn: document.getElementById('skip-btn'), recordFocus: document.getElementById('record-focus'),
+        recordShort: document.getElementById('record-short'), recordLong: document.getElementById('record-long'), resetRecordsBtn: document.getElementById('reset-records-btn')
+    };
 
-        phaseTabs: document.querySelectorAll('.segment'),
-        timeDisplay: document.getElementById('time-display'),
-        progressContainer: document.getElementById('progress-container'),
-        progressFill: document.getElementById('progress-fill'),
-        labelElapsed: document.getElementById('label-elapsed'),
-        labelRemaining: document.getElementById('label-remaining'),
-
-        mainBtn: document.getElementById('main-btn'),
-        resetBtn: document.getElementById('reset-btn'),
-        skipBtn: document.getElementById('skip-btn'),
-
-        recordFocus: document.getElementById('record-focus'),
-        recordShort: document.getElementById('record-short'),
-        recordLong: document.getElementById('record-long'),
-        resetRecordsBtn: document.getElementById('reset-records-btn')
+    // 워커에서 메시지가 올 때마다 현재 시간을 검사 (화면이 꺼져있어도 계산됨)
+    timerWorker.onmessage = function() {
+        if (timerState !== 'running') return;
+        
+        const now = Date.now();
+        const remaining = Math.round((expectedEndTime - now) / 1000);
+        
+        if (remaining !== timeRemaining) {
+            timeRemaining = Math.max(0, remaining);
+            updateDisplay();
+            
+            if (timeRemaining <= 0) {
+                completeTimer();
+            }
+        }
     };
 
     function formatTime(secs) {
@@ -376,8 +389,7 @@ const App = (function() {
         const saved = localStorage.getItem('pomodoroData');
         if (saved) {
             const parsed = JSON.parse(saved);
-            Object.assign(data.settings, parsed.settings);
-            Object.assign(data.records, parsed.records);
+            Object.assign(data.settings, parsed.settings); Object.assign(data.records, parsed.records);
         }
     }
 
@@ -389,24 +401,15 @@ const App = (function() {
     }
 
     function syncSettingsToUI() {
-        els.timeFocus.value = data.settings.timeFocus;
-        els.timeShort.value = data.settings.timeShort;
-        els.timeLong.value = data.settings.timeLong;
-        els.intervalLong.value = data.settings.intervalLong;
-        els.autoStart.checked = data.settings.autoStart;
-        els.soundType.value = data.settings.soundType;
-        els.soundVolume.value = data.settings.soundVolume;
-        els.volText.textContent = `${data.settings.soundVolume}%`;
-        els.colorPrimary.value = data.settings.colorPrimary;
+        els.timeFocus.value = data.settings.timeFocus; els.timeShort.value = data.settings.timeShort; els.timeLong.value = data.settings.timeLong;
+        els.intervalLong.value = data.settings.intervalLong; els.autoStart.checked = data.settings.autoStart; els.soundType.value = data.settings.soundType;
+        els.soundVolume.value = data.settings.soundVolume; els.volText.textContent = `${data.settings.soundVolume}%`; els.colorPrimary.value = data.settings.colorPrimary;
         els.colorBg.value = data.settings.colorBg;
-        
         updateRecordsUI(); updateColors();
     }
 
     function updateRecordsUI() {
-        els.recordFocus.textContent = data.records.focus;
-        els.recordShort.textContent = data.records.shortBreak;
-        els.recordLong.textContent = data.records.longBreak;
+        els.recordFocus.textContent = data.records.focus; els.recordShort.textContent = data.records.shortBreak; els.recordLong.textContent = data.records.longBreak;
     }
 
     function updateDisplay() {
@@ -426,8 +429,7 @@ const App = (function() {
 
     function setActiveTab(phase) {
         els.phaseTabs.forEach(tab => {
-            if (tab.dataset.phase === phase) tab.classList.add('active');
-            else tab.classList.remove('active');
+            if (tab.dataset.phase === phase) tab.classList.add('active'); else tab.classList.remove('active');
         });
     }
 
@@ -445,27 +447,32 @@ const App = (function() {
 
     function startTimer() {
         if (timerState === 'running' || timeRemaining <= 0) return;
-        timerState = 'running'; els.progressFill.style.transition = 'width 1s linear';
-        timerInterval = setInterval(() => {
-            timeRemaining--; updateDisplay();
-            if (timeRemaining <= 0) completeTimer();
-        }, 1000);
+        timerState = 'running';
+        
+        expectedEndTime = Date.now() + (timeRemaining * 1000); // 현재 시간 기준으로 목표 시간 설정
+        timerWorker.postMessage('start'); // 백그라운드 워커에 신호 보냄
+        
+        els.progressFill.style.transition = 'width 1s linear';
         updateDisplay();
     }
 
     function pauseTimer() {
         if (timerState !== 'running') return;
-        timerState = 'paused'; clearInterval(timerInterval);
+        timerState = 'paused';
+        timerWorker.postMessage('stop');
         els.progressFill.style.transition = ''; updateDisplay();
     }
 
     function resetTimer() {
-        timerState = 'idle'; clearInterval(timerInterval);
+        timerState = 'idle';
+        timerWorker.postMessage('stop');
         els.progressFill.style.transition = ''; setPhase(currentPhase);
     }
 
     function completeTimer() {
-        timerState = 'idle'; clearInterval(timerInterval); timeRemaining = 0;
+        timerState = 'idle';
+        timerWorker.postMessage('stop');
+        timeRemaining = 0;
         els.progressFill.style.transition = ''; updateDisplay();
         
         data.records[currentPhase]++; saveData(); updateRecordsUI();
@@ -491,7 +498,11 @@ const App = (function() {
         if (e.touches && e.touches.length > 0) clientX = e.touches[0].clientX;
         let x = Math.max(0, Math.min(clientX - rect.left, rect.width)); 
         const percent = x / rect.width;
-        timeRemaining = Math.max(0, Math.floor(totalSeconds - (percent * totalSeconds))); 
+        
+        const elapsed = percent * totalSeconds;
+        timeRemaining = Math.max(0, Math.floor(totalSeconds - elapsed)); 
+        expectedEndTime = Date.now() + (timeRemaining * 1000); // 드래그 시 목표 시간 재계산
+        
         updateDisplay();
     }
 
@@ -516,17 +527,21 @@ const App = (function() {
 
     function bindEvents() {
         els.mainBtn.addEventListener('click', () => {
+            // iOS 등 모바일 사파리 정책 대응 (사용자 인터랙션 시 오디오 컨텍스트 미리 활성화)
+            AudioEngine.play('mute', 0);
+            
             if (timerState === 'idle' || timerState === 'paused') startTimer();
             else if (timerState === 'running') pauseTimer();
         });
+        
         els.resetBtn.addEventListener('click', resetTimer);
         els.skipBtn.addEventListener('click', () => {
-            timerState = 'idle'; clearInterval(timerInterval); els.progressFill.style.transition = ''; setPhase(getNextPhase());
+            timerState = 'idle'; timerWorker.postMessage('stop'); els.progressFill.style.transition = ''; setPhase(getNextPhase());
         });
 
         els.phaseTabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                timerState = 'idle'; clearInterval(timerInterval); els.progressFill.style.transition = ''; setPhase(e.target.dataset.phase);
+                timerState = 'idle'; timerWorker.postMessage('stop'); els.progressFill.style.transition = ''; setPhase(e.target.dataset.phase);
             });
         });
 
