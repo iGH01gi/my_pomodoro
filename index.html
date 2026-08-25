@@ -252,6 +252,13 @@
 </div>
 
 <script>
+// 모바일 크롬 알림 지원을 위한 Service Worker 등록
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+    .then((reg) => console.log('Service Worker 등록 완료:', reg.scope))
+    .catch((err) => console.log('Service Worker 등록 실패:', err));
+}
+
 const AudioEngine = (function() {
     let audioCtx = null;
 
@@ -327,6 +334,7 @@ const App = (function() {
     
     let isDragging = false;
     let wasRunningBeforeDrag = false;
+    let hasRequestedNotification = false; // 알림 권한 중복 요청 방지용 플래그
 
     const workerCode = `
         let interval;
@@ -476,13 +484,27 @@ const App = (function() {
         data.records[currentPhase]++; saveData(); updateRecordsUI();
         AudioEngine.play(data.settings.soundType, data.settings.soundVolume);
 
-        // 시스템 푸시 알림 발생 코드 추가
+        // PC 및 안드로이드 크롬 모두 지원하는 푸시 알림
         if ("Notification" in window && Notification.permission === "granted") {
             const phaseName = currentPhase === 'focus' ? '집중시간' : (currentPhase === 'shortBreak' ? '짧은 휴식' : '긴 휴식');
-            new Notification("타이머 종료 ⏱️", {
+            const title = "타이머 종료 ⏱️";
+            const options = {
                 body: `${phaseName}이(가) 끝났습니다!`,
-                vibrate: [500, 200, 500]
-            });
+                vibrate: [500, 200, 500],
+                requireInteraction: true
+            };
+
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    registration.showNotification(title, options);
+                }).catch(function() {
+                    // 서비스 워커가 아직 활성화되지 않았을 때의 예외 처리 (PC용 Fallback)
+                    new Notification(title, options);
+                });
+            } else {
+                // 서비스 워커를 지원하지 않는 브라우저용 Fallback
+                new Notification(title, options);
+            }
         }
 
         if (data.settings.autoStart) {
@@ -536,8 +558,9 @@ const App = (function() {
         els.mainBtn.addEventListener('click', () => {
             AudioEngine.play('mute', 0);
             
-            // 시스템 알림 권한 요청 코드 추가
-            if ("Notification" in window && Notification.permission === "default") {
+            // 알림 권한 1회만 요청하도록 방어
+            if ("Notification" in window && Notification.permission === "default" && !hasRequestedNotification) {
+                hasRequestedNotification = true;
                 Notification.requestPermission();
             }
 
