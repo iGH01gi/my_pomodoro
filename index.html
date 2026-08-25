@@ -34,7 +34,6 @@
 
         .container {
             display: grid;
-            /* 좌측: 타이머(1fr), 우측: 설정(350px)으로 변경 */
             grid-template-columns: 1fr 350px;
             gap: 24px;
             max-width: 900px;
@@ -48,242 +47,84 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        /* Settings Area */
-        .settings-group {
-            margin-bottom: 20px;
-        }
+        .settings-group { margin-bottom: 20px; }
         .settings-group h3 {
-            font-size: 14px;
-            color: #64748B;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 14px; color: #64748B; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
         }
         .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px;
         }
         .setting-item input[type="number"] {
-            width: 60px;
-            padding: 6px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            text-align: center;
+            width: 60px; padding: 6px; border: 1px solid var(--border-color); border-radius: 6px; text-align: center;
         }
         .setting-item input[type="color"] {
-            border: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            cursor: pointer;
-            padding: 0;
-            background: none;
+            border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0; background: none;
         }
         .setting-item input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .setting-item input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
 
-        .audio-settings {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .audio-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-        }
-        select {
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            flex: 1;
-        }
+        .audio-settings { display: flex; flex-direction: column; gap: 12px; }
+        .audio-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        select { padding: 8px; border: 1px solid var(--border-color); border-radius: 6px; flex: 1; }
         .preview-btn {
-            padding: 8px 12px;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
+            padding: 8px 12px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 6px; cursor: pointer; font-size: 12px;
         }
-        input[type="range"] {
-            flex: 1;
-            accent-color: var(--primary-color);
-        }
+        input[type="range"] { flex: 1; accent-color: var(--primary-color); }
 
-        /* Toggle Switch */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 24px;
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px;
         }
         .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px; width: 18px;
-            left: 3px; bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
+            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
         }
         input:checked + .slider { background-color: var(--primary-color); }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Timer Area */
-        .timer-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .timer-section { display: flex; flex-direction: column; align-items: center; }
 
-        /* Segmented Control */
         .segmented-control {
-            display: flex;
-            background: var(--bg-color);
-            border-radius: 12px;
-            padding: 6px;
-            width: 100%;
-            margin-bottom: 40px;
+            display: flex; background: var(--bg-color); border-radius: 12px; padding: 6px; width: 100%; margin-bottom: 40px;
         }
         .segment {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            color: #64748B;
-            transition: all 0.2s;
+            flex: 1; text-align: center; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 500; color: #64748B; transition: all 0.2s;
         }
-        .segment.active {
-            background: var(--primary-color);
-            color: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .segment.active { background: var(--primary-color); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-        /* Display */
         .timer-display {
-            font-size: 80px;
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            margin: 20px 0;
-            letter-spacing: -2px;
-            color: var(--text-color);
+            font-size: 80px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 20px 0; letter-spacing: -2px; color: var(--text-color);
         }
 
-        /* Progress Bar */
         .progress-container {
-            width: 100%;
-            height: 30px; /* 터치 영역 확보 */
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            margin-bottom: 8px;
-            position: relative;
+            width: 100%; height: 30px; display: flex; align-items: center; cursor: pointer; margin-bottom: 8px; position: relative;
         }
         .progress-bg {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-color);
-            border-radius: 4px;
-            overflow: hidden;
-            position: relative;
-            pointer-events: none;
+            width: 100%; height: 8px; background: var(--bg-color); border-radius: 4px; overflow: hidden; position: relative; pointer-events: none;
         }
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-color);
-            width: 0%;
-        }
-        .time-labels {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #94A3B8;
-            margin-bottom: 40px;
-        }
+        .progress-fill { height: 100%; background: var(--primary-color); width: 0%; }
+        .time-labels { width: 100%; display: flex; justify-content: space-between; font-size: 12px; color: #94A3B8; margin-bottom: 40px; }
 
-        /* Controls */
-        .main-controls {
-            display: flex;
-            gap: 16px;
-            margin-bottom: 30px;
-        }
+        .main-controls { display: flex; gap: 16px; margin-bottom: 30px; }
         .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
+            border: none; border-radius: 8px; padding: 14px 28px; font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
         }
         .btn:active { transform: scale(0.97); }
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-            min-width: 120px;
-        }
-        .btn-secondary {
-            background: var(--bg-color);
-            color: var(--text-color);
-        }
+        .btn-primary { background: var(--primary-color); color: white; min-width: 120px; }
+        .btn-secondary { background: var(--bg-color); color: var(--text-color); }
 
-        /* Records */
         .records-card {
-            background: var(--bg-color);
-            border-radius: 12px;
-            padding: 16px;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-top: auto;
+            background: var(--bg-color); border-radius: 12px; padding: 16px; width: 100%; display: flex; justify-content: space-around; align-items: center; margin-top: auto;
         }
-        .record-item {
-            text-align: center;
-        }
-        .record-label {
-            font-size: 11px;
-            color: #64748B;
-            margin-bottom: 4px;
-        }
-        .record-value {
-            font-size: 18px;
-            font-weight: 600;
-        }
+        .record-item { text-align: center; }
+        .record-label { font-size: 11px; color: #64748B; margin-bottom: 4px; }
+        .record-value { font-size: 18px; font-weight: 600; }
         .reset-records-btn {
-            font-size: 11px;
-            color: #EF4444;
-            background: none;
-            border: 1px solid #EF4444;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
+            font-size: 11px; color: #EF4444; background: none; border: 1px solid #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer; transition: all 0.2s;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
+            .container { grid-template-columns: 1fr; gap: 20px; }
             .timer-display { font-size: 64px; }
             .card { padding: 20px; }
             .settings-group { margin-bottom: 16px; }
@@ -293,7 +134,6 @@
 <body>
 
 <div class="container">
-    <!-- 좌측: 메인 타이머 영역 -->
     <div class="card timer-section">
         <div class="segmented-control" id="phase-tabs">
             <div class="segment active" data-phase="focus">집중시간</div>
@@ -336,7 +176,6 @@
         </div>
     </div>
 
-    <!-- 우측: 설정 영역 -->
     <div class="card">
         <div class="settings-group">
             <h3>시간 설정 (분)</h3>
@@ -383,6 +222,7 @@
                         <option value="digital">디지털 알림</option>
                         <option value="soft">부드러운 알림</option>
                         <option value="chime">차임</option>
+                        <option value="vibrate">진동</option> <!-- 진동 옵션 추가 -->
                         <option value="mute">무음</option>
                     </select>
                     <button class="preview-btn" id="preview-btn">미리 듣기</button>
@@ -391,6 +231,7 @@
                     <span style="font-size: 12px; min-width: 40px;">볼륨 <span id="vol-text">70%</span></span>
                     <input type="range" id="sound-volume" min="0" max="100" value="70">
                 </div>
+                <p style="font-size: 11px; color: #94A3B8; margin-top: 4px;">* 진동은 지원하는 기기(스마트폰 등)에서만 작동합니다.</p>
             </div>
         </div>
 
@@ -411,9 +252,6 @@
 </div>
 
 <script>
-/**
- * 웹 오디오 API를 이용한 알림음 생성기
- */
 const AudioEngine = (function() {
     let audioCtx = null;
 
@@ -447,14 +285,20 @@ const AudioEngine = (function() {
 
     return {
         play: function(type, volumePercent) {
+            // 진동 처리 추가
+            if (type === 'vibrate') {
+                if (navigator.vibrate) {
+                    navigator.vibrate([500, 200, 500]);
+                }
+                return;
+            }
+
             const vol = volumePercent / 100;
             if (vol === 0 || type === 'mute') return;
             initCtx();
 
             switch (type) {
-                case 'bell':
-                    playTone(880, 'sine', 1.5, vol); 
-                    break;
+                case 'bell': playTone(880, 'sine', 1.5, vol); break;
                 case 'double':
                     playTone(880, 'sine', 0.5, vol, 0);
                     playTone(880, 'sine', 1.0, vol, 0.6);
@@ -464,9 +308,7 @@ const AudioEngine = (function() {
                     playTone(1200, 'square', 0.2, vol * 0.5, 0.3);
                     playTone(1200, 'square', 0.4, vol * 0.5, 0.6);
                     break;
-                case 'soft':
-                    playTone(440, 'sine', 2.0, vol);
-                    break;
+                case 'soft': playTone(440, 'sine', 2.0, vol); break;
                 case 'chime':
                     playTone(523.25, 'sine', 1.5, vol * 0.5, 0); 
                     playTone(659.25, 'sine', 1.5, vol * 0.5, 0.2); 
@@ -477,11 +319,8 @@ const AudioEngine = (function() {
     };
 })();
 
-/**
- * 상태 및 로직 관리
- */
 const App = (function() {
-    let timerState = 'idle'; // 'idle', 'running', 'paused'
+    let timerState = 'idle'; 
     let currentPhase = 'focus'; 
     let totalSeconds = 25 * 60;
     let timeRemaining = totalSeconds;
@@ -491,15 +330,7 @@ const App = (function() {
 
     const data = {
         settings: {
-            timeFocus: 25,
-            timeShort: 5,
-            timeLong: 15,
-            intervalLong: 4,
-            autoStart: true,
-            soundType: 'bell',
-            soundVolume: 70,
-            colorPrimary: '#4A90E2',
-            colorBg: '#F5F7FA'
+            timeFocus: 25, timeShort: 5, timeLong: 15, intervalLong: 4, autoStart: true, soundType: 'bell', soundVolume: 70, colorPrimary: '#4A90E2', colorBg: '#F5F7FA'
         },
         records: { focus: 0, shortBreak: 0, longBreak: 0 }
     };
@@ -550,9 +381,7 @@ const App = (function() {
         }
     }
 
-    function saveData() {
-        localStorage.setItem('pomodoroData', JSON.stringify(data));
-    }
+    function saveData() { localStorage.setItem('pomodoroData', JSON.stringify(data)); }
 
     function updateColors() {
         document.documentElement.style.setProperty('--primary-color', data.settings.colorPrimary);
@@ -571,8 +400,7 @@ const App = (function() {
         els.colorPrimary.value = data.settings.colorPrimary;
         els.colorBg.value = data.settings.colorBg;
         
-        updateRecordsUI();
-        updateColors();
+        updateRecordsUI(); updateColors();
     }
 
     function updateRecordsUI() {
@@ -582,9 +410,7 @@ const App = (function() {
     }
 
     function updateDisplay() {
-        // 음수 표시 완전 차단
         timeRemaining = Math.max(0, timeRemaining);
-        
         els.timeDisplay.textContent = formatTime(timeRemaining);
         const elapsed = totalSeconds - timeRemaining;
         els.labelElapsed.textContent = formatTime(elapsed);
@@ -593,7 +419,6 @@ const App = (function() {
         const percent = totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
         els.progressFill.style.width = `${percent}%`;
 
-        // 버튼 텍스트 변경
         if (timerState === 'idle') els.mainBtn.textContent = '시작';
         else if (timerState === 'running') els.mainBtn.textContent = '일시정지';
         else if (timerState === 'paused') els.mainBtn.textContent = '재개';
@@ -614,138 +439,81 @@ const App = (function() {
     }
 
     function setPhase(phase) {
-        currentPhase = phase;
-        totalSeconds = getSecondsForPhase(phase);
-        timeRemaining = totalSeconds;
-        setActiveTab(phase);
-        updateDisplay();
+        currentPhase = phase; totalSeconds = getSecondsForPhase(phase); timeRemaining = totalSeconds;
+        setActiveTab(phase); updateDisplay();
     }
 
     function startTimer() {
-        if (timerState === 'running') return;
-        if (timeRemaining <= 0) return;
-
-        timerState = 'running';
-        els.progressFill.style.transition = 'width 1s linear';
-        
+        if (timerState === 'running' || timeRemaining <= 0) return;
+        timerState = 'running'; els.progressFill.style.transition = 'width 1s linear';
         timerInterval = setInterval(() => {
-            timeRemaining--;
-            updateDisplay();
-            
-            if (timeRemaining <= 0) {
-                completeTimer();
-            }
+            timeRemaining--; updateDisplay();
+            if (timeRemaining <= 0) completeTimer();
         }, 1000);
         updateDisplay();
     }
 
     function pauseTimer() {
         if (timerState !== 'running') return;
-        timerState = 'paused';
-        clearInterval(timerInterval);
-        els.progressFill.style.transition = '';
-        updateDisplay();
+        timerState = 'paused'; clearInterval(timerInterval);
+        els.progressFill.style.transition = ''; updateDisplay();
     }
 
     function resetTimer() {
-        timerState = 'idle';
-        clearInterval(timerInterval);
-        els.progressFill.style.transition = '';
-        setPhase(currentPhase);
+        timerState = 'idle'; clearInterval(timerInterval);
+        els.progressFill.style.transition = ''; setPhase(currentPhase);
     }
 
     function completeTimer() {
-        timerState = 'idle';
-        clearInterval(timerInterval);
-        timeRemaining = 0;
-        els.progressFill.style.transition = '';
-        updateDisplay(); // 00:00으로 갱신
+        timerState = 'idle'; clearInterval(timerInterval); timeRemaining = 0;
+        els.progressFill.style.transition = ''; updateDisplay();
         
-        // 완료 기록 추가
-        data.records[currentPhase]++;
-        saveData();
-        updateRecordsUI();
-        
-        // 알림음 재생
+        data.records[currentPhase]++; saveData(); updateRecordsUI();
         AudioEngine.play(data.settings.soundType, data.settings.soundVolume);
 
-        // 자동 시작 여부 체크
         if (data.settings.autoStart) {
-            const next = getNextPhase();
-            setPhase(next);
-            setTimeout(() => {
-                startTimer();
-            }, 500);
+            const next = getNextPhase(); setPhase(next);
+            setTimeout(() => { startTimer(); }, 500);
         }
-        // 자동 시작 OFF면 여기서 멈추고 해당 단계에서 00:00 상태 유지
     }
 
     function getNextPhase() {
         if (currentPhase === 'focus') {
-            if (data.records.focus > 0 && data.records.focus % data.settings.intervalLong === 0) {
-                return 'longBreak';
-            }
+            if (data.records.focus > 0 && data.records.focus % data.settings.intervalLong === 0) return 'longBreak';
             return 'shortBreak';
         }
         return 'focus';
     }
 
-    // --- 진행바 드래그 로직 ---
     function handleProgressInteraction(e) {
         const rect = els.progressContainer.getBoundingClientRect();
         let clientX = e.clientX;
-        
-        if (e.touches && e.touches.length > 0) {
-            clientX = e.touches[0].clientX;
-        }
-        
-        let x = clientX - rect.left;
-        x = Math.max(0, Math.min(x, rect.width)); 
+        if (e.touches && e.touches.length > 0) clientX = e.touches[0].clientX;
+        let x = Math.max(0, Math.min(clientX - rect.left, rect.width)); 
         const percent = x / rect.width;
-        
-        const elapsed = percent * totalSeconds;
-        timeRemaining = Math.max(0, Math.floor(totalSeconds - elapsed)); 
-        
+        timeRemaining = Math.max(0, Math.floor(totalSeconds - (percent * totalSeconds))); 
         updateDisplay();
     }
 
     function dragStart(e) {
-        isDragging = true;
-        els.progressFill.style.transition = 'none'; // 즉시 마우스 추적
-        
-        if (timerState === 'running') {
-            wasRunningBeforeDrag = true;
-            pauseTimer(); 
-        } else {
-            wasRunningBeforeDrag = false;
-        }
-        
+        isDragging = true; els.progressFill.style.transition = 'none';
+        if (timerState === 'running') { wasRunningBeforeDrag = true; pauseTimer(); } 
+        else { wasRunningBeforeDrag = false; }
         handleProgressInteraction(e);
     }
 
     function dragMove(e) {
         if (!isDragging) return;
-        
-        if (e.type === 'touchmove' && e.cancelable) {
-            e.preventDefault(); // 스크롤 방지
-        }
+        if (e.type === 'touchmove' && e.cancelable) e.preventDefault();
         handleProgressInteraction(e);
     }
 
     function dragEnd() {
         if (!isDragging) return;
         isDragging = false;
-        
-        if (wasRunningBeforeDrag) {
-            if (timeRemaining > 0) {
-                startTimer(); 
-            } else {
-                completeTimer();
-            }
-        }
+        if (wasRunningBeforeDrag) { if (timeRemaining > 0) startTimer(); else completeTimer(); }
     }
 
-    // --- 이벤트 바인딩 ---
     function bindEvents() {
         els.mainBtn.addEventListener('click', () => {
             if (timerState === 'idle' || timerState === 'paused') startTimer();
@@ -753,35 +521,23 @@ const App = (function() {
         });
         els.resetBtn.addEventListener('click', resetTimer);
         els.skipBtn.addEventListener('click', () => {
-            timerState = 'idle';
-            clearInterval(timerInterval);
-            els.progressFill.style.transition = '';
-            setPhase(getNextPhase());
+            timerState = 'idle'; clearInterval(timerInterval); els.progressFill.style.transition = ''; setPhase(getNextPhase());
         });
 
         els.phaseTabs.forEach(tab => {
             tab.addEventListener('click', (e) => {
-                timerState = 'idle';
-                clearInterval(timerInterval);
-                els.progressFill.style.transition = '';
-                setPhase(e.target.dataset.phase);
+                timerState = 'idle'; clearInterval(timerInterval); els.progressFill.style.transition = ''; setPhase(e.target.dataset.phase);
             });
         });
 
-        // 진행바 마우스 및 터치
         els.progressContainer.addEventListener('mousedown', dragStart);
         window.addEventListener('mousemove', dragMove);
         window.addEventListener('mouseup', dragEnd);
-        
         els.progressContainer.addEventListener('touchstart', dragStart, { passive: false });
         window.addEventListener('touchmove', dragMove, { passive: false });
         window.addEventListener('touchend', dragEnd);
 
-        // 설정 변경
-        const saveSetting = (key, val, parseFn = Number) => {
-            data.settings[key] = parseFn(val);
-            saveData();
-        };
+        const saveSetting = (key, val, parseFn = Number) => { data.settings[key] = parseFn(val); saveData(); };
 
         els.timeFocus.addEventListener('change', (e) => { saveSetting('timeFocus', e.target.value); if(currentPhase === 'focus' && timerState === 'idle') setPhase('focus'); });
         els.timeShort.addEventListener('change', (e) => { saveSetting('timeShort', e.target.value); if(currentPhase === 'shortBreak' && timerState === 'idle') setPhase('shortBreak'); });
@@ -792,52 +548,26 @@ const App = (function() {
         
         els.soundType.addEventListener('change', (e) => { saveSetting('soundType', e.target.value, String); });
         els.soundVolume.addEventListener('input', (e) => { 
-            saveSetting('soundVolume', e.target.value);
-            els.volText.textContent = `${e.target.value}%`;
+            saveSetting('soundVolume', e.target.value); els.volText.textContent = `${e.target.value}%`;
         });
-        els.previewBtn.addEventListener('click', () => {
-            AudioEngine.play(data.settings.soundType, data.settings.soundVolume);
-        });
+        els.previewBtn.addEventListener('click', () => { AudioEngine.play(data.settings.soundType, data.settings.soundVolume); });
 
-        els.colorPrimary.addEventListener('input', (e) => {
-            data.settings.colorPrimary = e.target.value;
-            updateColors();
-            saveData();
-        });
-        els.colorBg.addEventListener('input', (e) => {
-            data.settings.colorBg = e.target.value;
-            updateColors();
-            saveData();
-        });
+        els.colorPrimary.addEventListener('input', (e) => { data.settings.colorPrimary = e.target.value; updateColors(); saveData(); });
+        els.colorBg.addEventListener('input', (e) => { data.settings.colorBg = e.target.value; updateColors(); saveData(); });
 
-        // 노션 호환 기록 초기화 로직 (confirm 팝업 대체)
         let resetConfirmTimeout;
         els.resetRecordsBtn.addEventListener('click', () => {
             if (els.resetRecordsBtn.textContent === '정말 초기화할까요?') {
-                // 두 번째 클릭 시 데이터 삭제
-                data.records = { focus: 0, shortBreak: 0, longBreak: 0 };
-                saveData();
-                updateRecordsUI();
-                els.resetRecordsBtn.textContent = '기록 초기화';
-                clearTimeout(resetConfirmTimeout);
+                data.records = { focus: 0, shortBreak: 0, longBreak: 0 }; saveData(); updateRecordsUI();
+                els.resetRecordsBtn.textContent = '기록 초기화'; clearTimeout(resetConfirmTimeout);
             } else {
-                // 첫 번째 클릭 시 텍스트 변경
                 els.resetRecordsBtn.textContent = '정말 초기화할까요?';
-                resetConfirmTimeout = setTimeout(() => {
-                    els.resetRecordsBtn.textContent = '기록 초기화';
-                }, 3000);
+                resetConfirmTimeout = setTimeout(() => { els.resetRecordsBtn.textContent = '기록 초기화'; }, 3000);
             }
         });
     }
 
-    return {
-        init: function() {
-            loadData();
-            syncSettingsToUI();
-            bindEvents();
-            setPhase('focus'); 
-        }
-    };
+    return { init: function() { loadData(); syncSettingsToUI(); bindEvents(); setPhase('focus'); } };
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);
