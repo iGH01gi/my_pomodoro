@@ -323,18 +323,17 @@ const App = (function() {
     let currentPhase = 'focus'; 
     let totalSeconds = 25 * 60;
     let timeRemaining = totalSeconds;
-    let expectedEndTime = 0; // 백그라운드 계산용 목표 시간
+    let expectedEndTime = 0; 
     
     let isDragging = false;
     let wasRunningBeforeDrag = false;
 
-    // Web Worker 생성 (백그라운드에서도 setInterval이 느려지지 않게 방어)
     const workerCode = `
         let interval;
         self.onmessage = function(e) {
             if (e.data === 'start') {
                 clearInterval(interval);
-                interval = setInterval(() => self.postMessage('tick'), 250); // 0.25초마다 체크
+                interval = setInterval(() => self.postMessage('tick'), 250);
             } else if (e.data === 'stop') {
                 clearInterval(interval);
             }
@@ -361,7 +360,6 @@ const App = (function() {
         recordShort: document.getElementById('record-short'), recordLong: document.getElementById('record-long'), resetRecordsBtn: document.getElementById('reset-records-btn')
     };
 
-    // 워커에서 메시지가 올 때마다 현재 시간을 검사 (화면이 꺼져있어도 계산됨)
     timerWorker.onmessage = function() {
         if (timerState !== 'running') return;
         
@@ -449,8 +447,8 @@ const App = (function() {
         if (timerState === 'running' || timeRemaining <= 0) return;
         timerState = 'running';
         
-        expectedEndTime = Date.now() + (timeRemaining * 1000); // 현재 시간 기준으로 목표 시간 설정
-        timerWorker.postMessage('start'); // 백그라운드 워커에 신호 보냄
+        expectedEndTime = Date.now() + (timeRemaining * 1000); 
+        timerWorker.postMessage('start'); 
         
         els.progressFill.style.transition = 'width 1s linear';
         updateDisplay();
@@ -478,6 +476,15 @@ const App = (function() {
         data.records[currentPhase]++; saveData(); updateRecordsUI();
         AudioEngine.play(data.settings.soundType, data.settings.soundVolume);
 
+        // 시스템 푸시 알림 발생 코드 추가
+        if ("Notification" in window && Notification.permission === "granted") {
+            const phaseName = currentPhase === 'focus' ? '집중시간' : (currentPhase === 'shortBreak' ? '짧은 휴식' : '긴 휴식');
+            new Notification("타이머 종료 ⏱️", {
+                body: `${phaseName}이(가) 끝났습니다!`,
+                vibrate: [500, 200, 500]
+            });
+        }
+
         if (data.settings.autoStart) {
             const next = getNextPhase(); setPhase(next);
             setTimeout(() => { startTimer(); }, 500);
@@ -501,7 +508,7 @@ const App = (function() {
         
         const elapsed = percent * totalSeconds;
         timeRemaining = Math.max(0, Math.floor(totalSeconds - elapsed)); 
-        expectedEndTime = Date.now() + (timeRemaining * 1000); // 드래그 시 목표 시간 재계산
+        expectedEndTime = Date.now() + (timeRemaining * 1000); 
         
         updateDisplay();
     }
@@ -527,9 +534,13 @@ const App = (function() {
 
     function bindEvents() {
         els.mainBtn.addEventListener('click', () => {
-            // iOS 등 모바일 사파리 정책 대응 (사용자 인터랙션 시 오디오 컨텍스트 미리 활성화)
             AudioEngine.play('mute', 0);
             
+            // 시스템 알림 권한 요청 코드 추가
+            if ("Notification" in window && Notification.permission === "default") {
+                Notification.requestPermission();
+            }
+
             if (timerState === 'idle' || timerState === 'paused') startTimer();
             else if (timerState === 'running') pauseTimer();
         });
