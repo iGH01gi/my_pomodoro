@@ -34,7 +34,8 @@
 
         .container {
             display: grid;
-            grid-template-columns: 350px 1fr;
+            /* 좌측: 타이머(1fr), 우측: 설정(350px)으로 변경 */
+            grid-template-columns: 1fr 350px;
             gap: 24px;
             max-width: 900px;
             width: 100%;
@@ -292,7 +293,50 @@
 <body>
 
 <div class="container">
-    <!-- 좌측: 설정 영역 -->
+    <!-- 좌측: 메인 타이머 영역 -->
+    <div class="card timer-section">
+        <div class="segmented-control" id="phase-tabs">
+            <div class="segment active" data-phase="focus">집중시간</div>
+            <div class="segment" data-phase="shortBreak">짧은 휴식</div>
+            <div class="segment" data-phase="longBreak">긴 휴식</div>
+        </div>
+
+        <div class="timer-display" id="time-display">25:00</div>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bg">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        <div class="time-labels">
+            <span id="label-elapsed">00:00</span>
+            <span id="label-remaining">25:00 남음</span>
+        </div>
+
+        <div class="main-controls">
+            <button class="btn btn-secondary" id="reset-btn">초기화</button>
+            <button class="btn btn-primary" id="main-btn">시작</button>
+            <button class="btn btn-secondary" id="skip-btn">다음 단계 →</button>
+        </div>
+
+        <div class="records-card">
+            <div class="record-item">
+                <div class="record-label">집중</div>
+                <div class="record-value" id="record-focus">0</div>
+            </div>
+            <div class="record-item">
+                <div class="record-label">짧은 휴식</div>
+                <div class="record-value" id="record-short">0</div>
+            </div>
+            <div class="record-item">
+                <div class="record-label">긴 휴식</div>
+                <div class="record-value" id="record-long">0</div>
+            </div>
+            <button class="reset-records-btn" id="reset-records-btn">기록 초기화</button>
+        </div>
+    </div>
+
+    <!-- 우측: 설정 영역 -->
     <div class="card">
         <div class="settings-group">
             <h3>시간 설정 (분)</h3>
@@ -362,49 +406,6 @@
                 <label>배경 색상</label>
                 <input type="color" id="color-bg" value="#F5F7FA">
             </div>
-        </div>
-    </div>
-
-    <!-- 우측: 메인 타이머 영역 -->
-    <div class="card timer-section">
-        <div class="segmented-control" id="phase-tabs">
-            <div class="segment active" data-phase="focus">집중시간</div>
-            <div class="segment" data-phase="shortBreak">짧은 휴식</div>
-            <div class="segment" data-phase="longBreak">긴 휴식</div>
-        </div>
-
-        <div class="timer-display" id="time-display">25:00</div>
-
-        <div class="progress-container" id="progress-container">
-            <div class="progress-bg">
-                <div class="progress-fill" id="progress-fill"></div>
-            </div>
-        </div>
-        <div class="time-labels">
-            <span id="label-elapsed">00:00</span>
-            <span id="label-remaining">25:00 남음</span>
-        </div>
-
-        <div class="main-controls">
-            <button class="btn btn-secondary" id="reset-btn">초기화</button>
-            <button class="btn btn-primary" id="main-btn">시작</button>
-            <button class="btn btn-secondary" id="skip-btn">다음 단계 →</button>
-        </div>
-
-        <div class="records-card">
-            <div class="record-item">
-                <div class="record-label">집중</div>
-                <div class="record-value" id="record-focus">0</div>
-            </div>
-            <div class="record-item">
-                <div class="record-label">짧은 휴식</div>
-                <div class="record-value" id="record-short">0</div>
-            </div>
-            <div class="record-item">
-                <div class="record-label">긴 휴식</div>
-                <div class="record-value" id="record-long">0</div>
-            </div>
-            <button class="reset-records-btn" id="reset-records-btn">기록 초기화</button>
         </div>
     </div>
 </div>

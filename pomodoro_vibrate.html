@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>집중 타이머</title>
+    <!-- 웹앱 매니페스트 추가 (PWA) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4A90E2">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #F5F7FA;
+            --text-color: #333333;
+            --card-bg: #FFFFFF;
+            --border-color: #E2E8F0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; /* 스크롤 방지 */
+            transition: background-color 0.3s;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            max-width: 600px;
+            position: relative;
+            background: var(--card-bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 톱니바퀴 버튼 */
+        .gear-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            z-index: 10;
+            color: #64748B;
+            transition: transform 0.2s;
+        }
+        .gear-btn:active { transform: rotate(45deg); }
+
+        /* 메인 타이머 영역 */
+        .timer-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 60px 20px 30px;
+            overflow-y: auto;
+        }
+
+        .segmented-control {
+            display: flex;
+            background: var(--bg-color);
+            border-radius: 12px;
+            padding: 6px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .segment {
+            flex: 1;
+            text-align: center;
+            padding: 12px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #64748B;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .segment.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .timer-display {
+            font-size: 88px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            margin: 30px 0;
+            letter-spacing: -2px;
+            color: var(--text-color);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 40px; /* 터치 영역 넉넉하게 */
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+        .progress-bg {
+            width: 100%;
+            height: 10px;
+            background: var(--bg-color);
+            border-radius: 5px;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+        }
+        .time-labels {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #94A3B8;
+            margin-bottom: 50px;
+            font-weight: 500;
+        }
+
+        .main-controls {
+            display: flex;
+            gap: 16px;
+            width: 100%;
+            margin-bottom: auto;
+        }
+        .btn {
+            flex: 1;
+            border: none;
+            border-radius: 12px;
+            padding: 18px 0;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn-primary { background: var(--primary-color); color: white; flex: 2; }
+        .btn-secondary { background: var(--bg-color); color: var(--text-color); }
+
+        /* Records */
+        .records-card {
+            background: var(--bg-color);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .record-item { text-align: center; }
+        .record-label { font-size: 12px; color: #64748B; margin-bottom: 6px; font-weight: 500;}
+        .record-value { font-size: 22px; font-weight: 700; }
+        
+        .reset-records-btn {
+            font-size: 12px;
+            color: #EF4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Settings Modal (전체 화면 슬라이드 오버레이) */
+        .settings-modal {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--card-bg);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .settings-modal.open {
+            transform: translateY(0);
+        }
+        
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--card-bg);
+        }
+        .settings-header h2 { font-size: 20px; font-weight: 700; }
+        .close-settings-btn {
+            background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-color);
+        }
+
+        .settings-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .settings-group { margin-bottom: 30px; }
+        .settings-group h3 {
+            font-size: 14px; color: #64748B; margin-bottom: 16px; text-transform: uppercase;
+        }
+        .setting-item {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 500;
+        }
+        .setting-item input[type="number"] {
+            width: 70px; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; text-align: center; font-size: 16px; background: var(--bg-color);
+        }
+        .setting-item input[type="color"] {
+            border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: none;
+        }
+        .setting-item input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .setting-item input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 28px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        select {
+            padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; flex: 1; font-size: 16px; background: var(--bg-color);
+        }
+        .preview-btn {
+            padding: 12px 16px; background: var(--border-color); border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; margin-left: 10px;
+        }
+        input[type="range"] { flex: 1; accent-color: var(--primary-color); }
+    </style>
+<script type="text/javascript" nonce="c29ab395310948af94f024b3dcc" src="//local.adguard.org?ts=1787653183599&amp;type=content-script&amp;dmn=contribution.usercontent.google.com&amp;url=https%3A%2F%2Fcontribution.usercontent.google.com%2Fdownload%3Fc%3DCgxiYXJkX3N0b3JhZ2USUBINcmVzcG9uc2VfZGF0YRo_CjBhYmFjNDA1ZTNjNWIwM2EzMDAwNjU5ZGM5MDdmMjc2MDA4ZWI2NTNmZmYwZTExN2YSCxIHEJLJxPXvAxgB%26filename%3Dpomodoro_mobile_vibrate.html%26opi%3D103135050%26authuser%3D2&amp;app=chrome.exe&amp;css=3&amp;js=1&amp;rel=1&amp;rji=1&amp;sbe=1"></script><script type="text/javascript" nonce="c29ab395310948af94f024b3dcc" src="//local.adguard.org?ts=1787653183599&amp;name=AdGuard%20Extra&amp;type=user-script"></script></head>
+<body>
+
+<div class="container">
+    <!-- 설정 톱니바퀴 버튼 -->
+    <button class="gear-btn" id="open-settings-btn">⚙️</button>
+
+    <!-- 메인 타이머 영역 -->
+    <div class="timer-section">
+        <div class="segmented-control" id="phase-tabs">
+            <div class="segment active" data-phase="focus">집중시간</div>
+            <div class="segment" data-phase="shortBreak">짧은 휴식</div>
+            <div class="segment" data-phase="longBreak">긴 휴식</div>
+        </div>
+
+        <div class="timer-display" id="time-display">25:00</div>
+
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bg">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+        </div>
+        <div class="time-labels">
+            <span id="label-elapsed">00:00</span>
+            <span id="label-remaining">25:00 남음</span>
+        </div>
+
+        <div class="main-controls">
+            <button class="btn btn-secondary" id="reset-btn">초기화</button>
+            <button class="btn btn-primary" id="main-btn">시작</button>
+            <button class="btn btn-secondary" id="skip-btn">건너뛰기</button>
+        </div>
+
+        <div class="records-card">
+            <div class="record-item">
+                <div class="record-label">집중</div>
+                <div class="record-value" id="record-focus">0</div>
+            </div>
+            <div class="record-item">
+                <div class="record-label">짧은 휴식</div>
+                <div class="record-value" id="record-short">0</div>
+            </div>
+            <div class="record-item">
+                <div class="record-label">긴 휴식</div>
+                <div class="record-value" id="record-long">0</div>
+            </div>
+            <button class="reset-records-btn" id="reset-records-btn">초기화</button>
+        </div>
+    </div>
+
+    <!-- 설정 모달 오버레이 -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="settings-header">
+            <h2>타이머 설정</h2>
+            <button class="close-settings-btn" id="close-settings-btn">✕</button>
+        </div>
+        <div class="settings-content">
+            <div class="settings-group">
+                <h3>시간 설정 (분)</h3>
+                <div class="setting-item">
+                    <label>집중시간</label>
+                    <input type="number" id="time-focus" value="25" min="1">
+                </div>
+                <div class="setting-item">
+                    <label>짧은 휴식</label>
+                    <input type="number" id="time-short" value="5" min="1">
+                </div>
+                <div class="setting-item">
+                    <label>긴 휴식</label>
+                    <input type="number" id="time-long" value="15" min="1">
+                </div>
+                <div class="setting-item">
+                    <label>긴 휴식 주기 (회)</label>
+                    <input type="number" id="interval-long" value="4" min="1">
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>동작 설정</h3>
+                <div class="setting-item">
+                    <label>자동 다음 단계 시작</label>
+                    <label class="switch">
+                        <input type="checkbox" id="auto-start" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>종료 알림음</h3>
+                <div style="display: flex; margin-bottom: 16px;">
+                    <select id="sound-type">
+                        <option value="bell">종소리</option>
+                        <option value="double">두 번 울리는 소리</option>
+                        <option value="digital">디지털 알림</option>
+                        <option value="soft">부드러운 알림</option>
+                        <option value="chime">차임</option>
+                        <option value="vibrate">진동</option>
+                        <option value="mute">무음</option>
+                    </select>
+                    <button class="preview-btn" id="preview-btn">미리 듣기</button>
+                </div>
+                <div class="setting-item">
+                    <label style="font-size: 14px;">볼륨 <span id="vol-text">70%</span></label>
+                    <input type="range" id="sound-volume" min="0" max="100" value="70" style="margin-left: 10px;">
+                </div>
+                <p style="font-size: 12px; color: #94A3B8; margin-top: -5px;">* 진동 모드는 소리를 끄고 진동만 울립니다.</p>
+            </div>
+
+            <div class="settings-group">
+                <h3>테마 색상</h3>
+                <div class="setting-item">
+                    <label>메인 색상</label>
+                    <input type="color" id="color-primary" value="#4A90E2">
+                </div>
+                <div class="setting-item">
+                    <label>배경 색상</label>
+                    <input type="color" id="color-bg" value="#F5F7FA">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/**
+ * 웹 오디오 API를 이용한 알림음 생성기 및 진동 제어
+ */
+const AudioEngine = (function() {
+    let audioCtx = null;
+
+    function initCtx() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+
+    function playTone(freq, type, duration, vol, startTimeOffset = 0) {
+        initCtx();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const startTime = audioCtx.currentTime + startTimeOffset;
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    }
+
+    return {
+        play: function(type, volumePercent) {
+            if (type === 'vibrate') {
+                // 스마트폰 진동 API 호출 (500ms 진동, 200ms 대기, 500ms 진동)
+                if (navigator.vibrate) {
+                    navigator.vibrate([500, 200, 500]);
+                }
+                return;
+            }
+
+            const vol = volumePercent / 100;
+            if (vol === 0 || type === 'mute') return;
+            initCtx();
+
+            switch (type) {
+                case 'bell':
+                    playTone(880, 'sine', 1.5, vol); 
+                    break;
+                case 'double':
+                    playTone(880, 'sine', 0.5, vol, 0);
+                    playTone(880, 'sine', 1.0, vol, 0.6);
+                    break;
+                case 'digital':
+                    playTone(1200, 'square', 0.2, vol * 0.5, 0);
+                    playTone(1200, 'square', 0.2, vol * 0.5, 0.3);
+                    playTone(1200, 'square', 0.4, vol * 0.5, 0.6);
+                    break;
+                case 'soft':
+                    playTone(440, 'sine', 2.0, vol);
+                    break;
+                case 'chime':
+                    playTone(523.25, 'sine', 1.5, vol * 0.5, 0); 
+                    playTone(659.25, 'sine', 1.5, vol * 0.5, 0.2); 
+                    playTone(783.99, 'sine', 2.0, vol * 0.5, 0.4); 
+                    break;
+            }
+        }
+    };
+})();
+
+/**
+ * 상태 및 로직 관리
+ */
+const App = (function() {
+    let timerState = 'idle'; // 'idle', 'running', 'paused'
+    let currentPhase = 'focus'; 
+    let totalSeconds = 25 * 60;
+    let timeRemaining = totalSeconds;
+    let expectedEndTime = 0; // 백그라운드 정확도 보장을 위한 목표 시간
+    
+    let isDragging = false;
+    let wasRunningBeforeDrag = false;
+
+    // Web Worker (백그라운드 타이머 제어용 - 화면이 꺼져도 interval이 느려지는 것을 방지)
+    const workerCode = `
+        let interval;
+        self.onmessage = function(e) {
+            if (e.data === 'start') {
+                clearInterval(interval);
+                interval = setInterval(() => self.postMessage('tick'), 250); // 0.25초마다 체크
+            } else if (e.data === 'stop') {
+                clearInterval(interval);
+            }
+        };
+    `;
+    const blob = new Blob([workerCode], {type: 'application/javascript'});
+    const timerWorker = new Worker(URL.createObjectURL(blob));
+
+    const data = {
+        settings: {
+            timeFocus: 25, timeShort: 5, timeLong: 15, intervalLong: 4,
+            autoStart: true, soundType: 'bell', soundVolume: 70,
+            colorPrimary: '#4A90E2', colorBg: '#F5F7FA'
+        },
+        records: { focus: 0, shortBreak: 0, longBreak: 0 }
+    };
+
+    const els = {
+        timeFocus: document.getElementById('time-focus'),
+        timeShort: document.getElementById('time-short'),
+        timeLong: document.getElementById('time-long'),
+        intervalLong: document.getElementById('interval-long'),
+        autoStart: document.getElementById('auto-start'),
+        soundType: document.getElementById('sound-type'),
+        soundVolume: document.getElementById('sound-volume'),
+        volText: document.getElementById('vol-text'),
+        previewBtn: document.getElementById('preview-btn'),
+        colorPrimary: document.getElementById('color-primary'),
+        colorBg: document.getElementById('color-bg'),
+
+        phaseTabs: document.querySelectorAll('.segment'),
+        timeDisplay: document.getElementById('time-display'),
+        progressContainer: document.getElementById('progress-container'),
+        progressFill: document.getElementById('progress-fill'),
+        labelElapsed: document.getElementById('label-elapsed'),
+        labelRemaining: document.getElementById('label-remaining'),
+
+        mainBtn: document.getElementById('main-btn'),
+        resetBtn: document.getElementById('reset-btn'),
+        skipBtn: document.getElementById('skip-btn'),
+
+        recordFocus: document.getElementById('record-focus'),
+        recordShort: document.getElementById('record-short'),
+        recordLong: document.getElementById('record-long'),
+        resetRecordsBtn: document.getElementById('reset-records-btn'),
+
+        openSettingsBtn: document.getElementById('open-settings-btn'),
+        closeSettingsBtn: document.getElementById('close-settings-btn'),
+        settingsModal: document.getElementById('settings-modal')
+    };
+
+    // 워커 틱 수신 시 (백그라운드에서도 작동)
+    timerWorker.onmessage = function() {
+        if (timerState !== 'running') return;
+        
+        const now = Date.now();
+        const remaining = Math.round((expectedEndTime - now) / 1000);
+        
+        if (remaining !== timeRemaining) {
+            timeRemaining = Math.max(0, remaining);
+            updateDisplay();
+            
+            if (timeRemaining <= 0) {
+                completeTimer();
+            }
+        }
+    };
+
+    function formatTime(secs) {
+        secs = Math.max(0, Math.floor(secs)); 
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem('pomodoroMobileData');
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            Object.assign(data.settings, parsed.settings);
+            Object.assign(data.records, parsed.records);
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem('pomodoroMobileData', JSON.stringify(data));
+    }
+
+    function updateColors() {
+        document.documentElement.style.setProperty('--primary-color', data.settings.colorPrimary);
+        document.documentElement.style.setProperty('--bg-color', data.settings.colorBg);
+        
+        // PWA 테마 색상 동기화
+        const metaTheme = document.querySelector('meta[name="theme-color"]');
+        if (metaTheme) metaTheme.setAttribute("content", data.settings.colorPrimary);
+    }
+
+    function syncSettingsToUI() {
+        els.timeFocus.value = data.settings.timeFocus;
+        els.timeShort.value = data.settings.timeShort;
+        els.timeLong.value = data.settings.timeLong;
+        els.intervalLong.value = data.settings.intervalLong;
+        els.autoStart.checked = data.settings.autoStart;
+        els.soundType.value = data.settings.soundType;
+        els.soundVolume.value = data.settings.soundVolume;
+        els.volText.textContent = `${data.settings.soundVolume}%`;
+        els.colorPrimary.value = data.settings.colorPrimary;
+        els.colorBg.value = data.settings.colorBg;
+        
+        updateRecordsUI();
+        updateColors();
+    }
+
+    function updateRecordsUI() {
+        els.recordFocus.textContent = data.records.focus;
+        els.recordShort.textContent = data.records.shortBreak;
+        els.recordLong.textContent = data.records.longBreak;
+    }
+
+    function updateDisplay() {
+        els.timeDisplay.textContent = formatTime(timeRemaining);
+        const elapsed = totalSeconds - timeRemaining;
+        els.labelElapsed.textContent = formatTime(elapsed);
+        els.labelRemaining.textContent = `${formatTime(timeRemaining)} 남음`;
+        
+        const percent = totalSeconds > 0 ? (elapsed / totalSeconds) * 100 : 0;
+        els.progressFill.style.width = `${percent}%`;
+
+        if (timerState === 'idle') els.mainBtn.textContent = '시작';
+        else if (timerState === 'running') els.mainBtn.textContent = '일시정지';
+        else if (timerState === 'paused') els.mainBtn.textContent = '재개';
+    }
+
+    function setActiveTab(phase) {
+        els.phaseTabs.forEach(tab => {
+            if (tab.dataset.phase === phase) tab.classList.add('active');
+            else tab.classList.remove('active');
+        });
+    }
+
+    function getSecondsForPhase(phase) {
+        if (phase === 'focus') return data.settings.timeFocus * 60;
+        if (phase === 'shortBreak') return data.settings.timeShort * 60;
+        if (phase === 'longBreak') return data.settings.timeLong * 60;
+        return 25 * 60;
+    }
+
+    function setPhase(phase) {
+        currentPhase = phase;
+        totalSeconds = getSecondsForPhase(phase);
+        timeRemaining = totalSeconds;
+        setActiveTab(phase);
+        updateDisplay();
+    }
+
+    function startTimer() {
+        if (timerState === 'running') return;
+        if (timeRemaining <= 0) return;
+
+        timerState = 'running';
+        
+        // 현재 시간 기준으로 종료 예상 시간 설정 (백그라운드 정확도 향상)
+        expectedEndTime = Date.now() + (timeRemaining * 1000);
+        timerWorker.postMessage('start');
+        
+        els.progressFill.style.transition = 'width 1s linear';
+        updateDisplay();
+    }
+
+    function pauseTimer() {
+        if (timerState !== 'running') return;
+        timerState = 'paused';
+        timerWorker.postMessage('stop');
+        els.progressFill.style.transition = '';
+        updateDisplay();
+    }
+
+    function resetTimer() {
+        timerState = 'idle';
+        timerWorker.postMessage('stop');
+        els.progressFill.style.transition = '';
+        setPhase(currentPhase);
+    }
+
+    function completeTimer() {
+        timerState = 'idle';
+        timerWorker.postMessage('stop');
+        timeRemaining = 0;
+        els.progressFill.style.transition = '';
+        updateDisplay();
+        
+        data.records[currentPhase]++;
+        saveData();
+        updateRecordsUI();
+        
+        AudioEngine.play(data.settings.soundType, data.settings.soundVolume);
+
+        if (data.settings.autoStart) {
+            const next = getNextPhase();
+            setPhase(next);
+            setTimeout(() => { startTimer(); }, 500);
+        }
+    }
+
+    function getNextPhase() {
+        if (currentPhase === 'focus') {
+            if (data.records.focus > 0 && data.records.focus % data.settings.intervalLong === 0) {
+                return 'longBreak';
+            }
+            return 'shortBreak';
+        }
+        return 'focus';
+    }
+
+    // --- 프로그레스 바 드래그 제어 ---
+    function handleProgressInteraction(e) {
+        const rect = els.progressContainer.getBoundingClientRect();
+        let clientX = e.clientX;
+        if (e.touches && e.touches.length > 0) clientX = e.touches[0].clientX;
+        
+        let x = clientX - rect.left;
+        x = Math.max(0, Math.min(x, rect.width)); 
+        const percent = x / rect.width;
+        
+        const elapsed = percent * totalSeconds;
+        timeRemaining = Math.max(0, Math.floor(totalSeconds - elapsed)); 
+        expectedEndTime = Date.now() + (timeRemaining * 1000); // 드래그 중에도 예상 종료시간 갱신
+        
+        updateDisplay();
+    }
+
+    function dragStart(e) {
+        isDragging = true;
+        els.progressFill.style.transition = 'none';
+        if (timerState === 'running') {
+            wasRunningBeforeDrag = true;
+            pauseTimer(); 
+        } else {
+            wasRunningBeforeDrag = false;
+        }
+        handleProgressInteraction(e);
+    }
+
+    function dragMove(e) {
+        if (!isDragging) return;
+        if (e.type === 'touchmove' && e.cancelable) e.preventDefault();
+        handleProgressInteraction(e);
+    }
+
+    function dragEnd() {
+        if (!isDragging) return;
+        isDragging = false;
+        if (wasRunningBeforeDrag) {
+            if (timeRemaining > 0) startTimer(); 
+            else completeTimer();
+        }
+    }
+
+    // --- 모달 토글 ---
+    function openSettings() { els.settingsModal.classList.add('open'); }
+    function closeSettings() { els.settingsModal.classList.remove('open'); }
+
+    // --- 이벤트 바인딩 ---
+    function bindEvents() {
+        els.mainBtn.addEventListener('click', () => {
+            // iOS 등 모바일 사파리 정책 대응: 사용자 인터랙션 시 Audio Context 초기화
+            AudioEngine.play('mute', 0);
+            
+            if (timerState === 'idle' || timerState === 'paused') startTimer();
+            else if (timerState === 'running') pauseTimer();
+        });
+        els.resetBtn.addEventListener('click', resetTimer);
+        els.skipBtn.addEventListener('click', () => {
+            timerState = 'idle';
+            timerWorker.postMessage('stop');
+            els.progressFill.style.transition = '';
+            setPhase(getNextPhase());
+        });
+
+        els.phaseTabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                timerState = 'idle';
+                timerWorker.postMessage('stop');
+                els.progressFill.style.transition = '';
+                setPhase(e.target.dataset.phase);
+            });
+        });
+
+        // 설정 창 열고 닫기
+        els.openSettingsBtn.addEventListener('click', openSettings);
+        els.closeSettingsBtn.addEventListener('click', closeSettings);
+
+        // 드래그
+        els.progressContainer.addEventListener('mousedown', dragStart);
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('mouseup', dragEnd);
+        els.progressContainer.addEventListener('touchstart', dragStart, { passive: false });
+        window.addEventListener('touchmove', dragMove, { passive: false });
+        window.addEventListener('touchend', dragEnd);
+
+        // 설정 변경 저장
+        const saveSetting = (key, val, parseFn = Number) => {
+            data.settings[key] = parseFn(val);
+            saveData();
+        };
+
+        els.timeFocus.addEventListener('change', (e) => { saveSetting('timeFocus', e.target.value); if(currentPhase === 'focus' && timerState === 'idle') setPhase('focus'); });
+        els.timeShort.addEventListener('change', (e) => { saveSetting('timeShort', e.target.value); if(currentPhase === 'shortBreak' && timerState === 'idle') setPhase('shortBreak'); });
+        els.timeLong.addEventListener('change', (e) => { saveSetting('timeLong', e.target.value); if(currentPhase === 'longBreak' && timerState === 'idle') setPhase('longBreak'); });
+        els.intervalLong.addEventListener('change', (e) => { saveSetting('intervalLong', e.target.value); });
+        
+        els.autoStart.addEventListener('change', (e) => { saveSetting('autoStart', e.target.checked, Boolean); });
+        
+        els.soundType.addEventListener('change', (e) => { saveSetting('soundType', e.target.value, String); });
+        els.soundVolume.addEventListener('input', (e) => { 
+            saveSetting('soundVolume', e.target.value);
+            els.volText.textContent = `${e.target.value}%`;
+        });
+        els.previewBtn.addEventListener('click', () => { AudioEngine.play(data.settings.soundType, data.settings.soundVolume); });
+
+        els.colorPrimary.addEventListener('input', (e) => { data.settings.colorPrimary = e.target.value; updateColors(); saveData(); });
+        els.colorBg.addEventListener('input', (e) => { data.settings.colorBg = e.target.value; updateColors(); saveData(); });
+
+        let resetConfirmTimeout;
+        els.resetRecordsBtn.addEventListener('click', () => {
+            if (els.resetRecordsBtn.textContent === '확인') {
+                data.records = { focus: 0, shortBreak: 0, longBreak: 0 };
+                saveData(); updateRecordsUI();
+                els.resetRecordsBtn.textContent = '초기화';
+                clearTimeout(resetConfirmTimeout);
+            } else {
+                els.resetRecordsBtn.textContent = '확인';
+                resetConfirmTimeout = setTimeout(() => { els.resetRecordsBtn.textContent = '초기화'; }, 3000);
+            }
+        });
+    }
+
+    return {
+        init: function() {
+            loadData();
+            syncSettingsToUI();
+            bindEvents();
+            setPhase('focus'); 
+        }
+    };
+})();
+
+document.addEventListener('DOMContentLoaded', App.init);
+</script>
+</body>
+</html>
